@@ -1,0 +1,18 @@
+# Generated build assets and local state
+/build/
+/dist/
+__pycache__/
+*.pyc
+.paperbridge/
+.obsidian/
+auth.json
+config.json
+config.toml
+notes-sync-state.json
+status.json
+*.backup
+*.paperbridge-backup
+*.sqlite*
+*.log
+.env
+.env.*

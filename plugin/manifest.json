@@ -1,0 +1,14 @@
+{
+  "manifest_version": 2,
+  "name": "PaperBridge 论文工作流",
+  "version": "0.2.0",
+  "description": "连接 Zotero、Codex 与 Obsidian，自动分类建笔记并保护个人书写区。",
+  "applications": {
+    "zotero": {
+      "id": "paperbridge@local.reader",
+      "update_url": "https://paperbridge.invalid/updates.json",
+      "strict_min_version": "10.0",
+      "strict_max_version": "10.0.*"
+    }
+  }
+}

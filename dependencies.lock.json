@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "files": [
+    {
+      "path": "plugins/codex-for-zotero.xpi",
+      "url": "https://github.com/RTLiang/zotero-codex/releases/download/v2026.299.1/zotero-codex-sidebar-2026.299.1.xpi",
+      "sha256": "ab9b24752e87ba23fa2dac1d403af4bbeb3134d92f148a2348fe95b18b50da07",
+      "size": 455717
+    },
+    {
+      "path": "plugins/better-notes-for-zotero-3.3.3.xpi",
+      "url": "https://github.com/windingwind/zotero-better-notes/releases/download/v3.3.3/better-notes-for-zotero.xpi",
+      "sha256": "48d426018338becd78c71f85159c36c03bbe3f6299ab5a564099e23790b01c1e",
+      "size": 5539473
+    },
+    {
+      "path": "licenses/BetterNotes-source-v3.3.3.tar.gz",
+      "url": "https://codeload.github.com/windingwind/zotero-better-notes/tar.gz/refs/tags/v3.3.3",
+      "sha256": "488748ca2cd05202aa98951de35e8a698707860374fb6dbb554a4d86207b58a3",
+      "size": 4989712
+    },
+    {
+      "path": "licenses/BetterNotes-AGPL-3.0.txt",
+      "url": "https://raw.githubusercontent.com/windingwind/zotero-better-notes/v3.3.3/LICENSE",
+      "sha256": "76a97c878c9c7a8321bb395c2b44d3fe2f8d81314d219b20138ed0e2dddd5182",
+      "size": 34520
+    },
+    {
+      "path": "licenses/codex-for-zotero-MIT.txt",
+      "url": "https://raw.githubusercontent.com/RTLiang/zotero-codex/v2026.299.1/LICENSE",
+      "sha256": "543dc9430a44c42058b28201c239988953c73f94521613ae171f145f2bbefa9b",
+      "size": 1082
+    },
+    {
+      "path": "runtime/node.exe",
+      "url": "https://nodejs.org/dist/v24.19.0/win-x64/node.exe",
+      "sha256": "3602f2bb1a10f2cbab4c36886218a33c1ab3db87290e73b033c46c77147d0237",
+      "size": 92825416
+    },
+    {
+      "path": "licenses/node-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v24.19.0/LICENSE",
+      "sha256": "148eacf7863ef4329224a29398623077200a27194aa075569faf4a0a85566ca5",
+      "size": 157606
+    }
+  ]
+}

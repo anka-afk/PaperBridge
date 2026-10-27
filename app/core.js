@@ -1,0 +1,20 @@
+(function(root){
+  'use strict';
+  const CATEGORIES=['01 Agent长期记忆','02 Agent上下文管理','03 数学推理与强化学习','04 知识蒸馏与模型压缩','待分类'];
+  const MODES={速读筛选:['摘要','方法','阅读决定'],科研分析:['摘要','方法','实验','局限','研究启发'],精读复现:['摘要','方法','公式与算法','实验','复现记录','局限','研究启发']};
+  const SECTIONS=[...new Set(Object.values(MODES).flat()),'问答'];
+  const marker=(name,edge)=>`<!-- pb:${name}:${edge} -->`;
+  function segment(s){const v=String(s||'').normalize('NFKC').replace(/[<>:"/\\|?*\x00-\x1f]/g,' ').replace(/\s+/g,' ').replace(/[ .]+$/g,'').trim().slice(0,90); if(!v||v==='.'||v==='..'||/^(CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])(?:\.|$)/i.test(v))throw new Error('名称无效');return v;}
+  function region(text,name){const a=marker(name,'start'),b=marker(name,'end'); if(text.split(a).length!==2||text.split(b).length!==2)throw new Error('笔记保护标记缺失或重复，请先修复：'+name); const start=text.indexOf(a)+a.length,end=text.indexOf(b);if(end<start)throw new Error('笔记保护标记顺序错误');return {start,end,body:text.slice(start,end)};}
+  function replace(text,name,body){const r=region(text,name);return text.slice(0,r.start)+'\n'+body.trim()+'\n'+text.slice(r.end);}
+  function slot(name){return `## ${name}\n${marker('slot-'+name,'start')}\n${marker('slot-'+name,'end')}`;}
+  function metadata(p){const authors=(p.authors||[]).join('；');return `- 作者：${authors}\n- 年份：${p.date||''}\n- 发表信息：${p.publication||p.repository||''}\n- 分类：${(p.categories||[]).join('；')}\n- Zotero：[打开条目](${p.itemURI})\n- PDF：[打开原文](${p.pdfURI||p.itemURI})\n- 论文链接：${p.url||''}`;}
+  function annotations(p){return (p.annotations||[]).slice(0,1000).map(a=>`> ${(a.text||'').replace(/\n/g,'\n> ')}\n\n${a.comment?'批注：'+a.comment+'\n\n':''}[第 ${a.page||'?'} 页](${a.uri})\n\n<!-- Zotero annotation ${a.key} -->`).join('\n\n')||'尚无批注。';}
+  function create(p,mode='速读筛选'){if(!MODES[mode])throw new Error('未知阅读类型'); const title=String(p.title||'未命名论文').replace(/\r?\n/g,' ');return `---\n论文标题: ${JSON.stringify(title)}\nzotero_key: ${JSON.stringify(p.key)}\n阅读类型: ${mode}\ntags: [论文, PaperBridge]\n---\n\n# ${title}\n\n${marker('metadata','start')}\n${metadata(p)}\n${marker('metadata','end')}\n\n# AI 整理\n\n${marker('ai','start')}\n${MODES[mode].map(slot).join('\n\n')}\n${marker('ai','end')}\n\n# 我的笔记\n\n${marker('personal','start')}\n\n${marker('personal','end')}\n\n# 原文批注\n\n${marker('annotations','start')}\n${annotations(p)}\n${marker('annotations','end')}\n`;}
+  function sync(text,p){region(text,'personal');region(text,'ai');let s=replace(text,'metadata',metadata(p));return replace(s,'annotations',annotations(p));}
+  function append(text,section,markdown,id,source){if(!SECTIONS.includes(section))throw new Error('不支持的笔记位置'); if(typeof markdown!=='string'||!markdown.trim()||markdown.length>60000||/<!--\s*pb:/i.test(markdown))throw new Error('笔记内容无效或含保护标记'); if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))throw new Error('记录标识无效');const ai=region(text,'ai');region(text,'personal');if(ai.body.includes(`<!-- pb:entry:${id} -->`))return {text,duplicate:true};let body=ai.body;const target='slot-'+section;if(!body.includes(marker(target,'start')))body+='\n\n'+slot(section)+'\n';const r=region(body,target);const reference=source&&source.uri?`\n\n原文依据：[第 ${source.page||'?'} 页](${source.uri})`:'';const entry=`<!-- pb:entry:${id} -->\n${markdown.trim()}${reference}\n`;body=replace(body,target,r.body+'\n\n'+entry);return {text:replace(text,'ai',body),duplicate:false};}
+  function mode(text,value){if(!MODES[value])throw new Error('未知阅读类型');region(text,'personal');const ai=region(text,'ai');let body=ai.body;for(const s of MODES[value])if(!body.includes(marker('slot-'+s,'start')))body+='\n\n'+slot(s);return replace(text.replace(/^阅读类型:.*$/m,'阅读类型: '+value),'ai',body);}
+  function category(p,categories=CATEGORIES){const choices=categories.filter(c=>c!=='待分类');const existing=(p.categories||[]).find(c=>choices.includes(c));if(existing)return {category:existing,reason:'Zotero 分类'};return {category:'待分类',reason:'等待 Codex 分类'};}
+  const api={CATEGORIES,MODES,SECTIONS,segment,region,create,sync,append,mode,category};
+  if(typeof module==='object'&&module.exports)module.exports=api; else root.PaperBridgeCore=api;
+})(globalThis);
