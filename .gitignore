@@ -16,3 +16,7 @@ status.json
 *.log
 .env
 .env.*
+
+provider-settings.json
+deepseek-secret.json
+deepseek-chats/

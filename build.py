@@ -20,10 +20,12 @@ own_xpi=plugins/f"paperbridge-{manifest['version']}.xpi"
 for previous in plugins.glob('paperbridge-*.xpi'):
     if previous!=own_xpi:previous.unlink()
 with zipfile.ZipFile(own_xpi,'w',zipfile.ZIP_DEFLATED) as z:
-    for f in (root/'plugin').iterdir():
-        if f.is_file():z.write(f,f.name)
+    for f in (root/'plugin').rglob('*'):
+        if f.is_file():z.write(f,f.relative_to(root/'plugin').as_posix())
     z.write(root/'app/core.js','core.js')
     z.write(root/'app/sync-core.js','sync-core.js')
+    z.write(root/'app/codex-path.js','codex-path.js')
+    z.write(root/'app/deepseek-client.js','deepseek-client.js')
     z.write(root/'LICENSE','LICENSE')
 for f in (root/'app').iterdir():
     if f.is_file():shutil.copy2(f,payload/f.name)

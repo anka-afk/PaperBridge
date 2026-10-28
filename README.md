@@ -1,19 +1,22 @@
-# PaperBridge 0.2.0
+# PaperBridge 0.3.0
 
-在 Zotero 找到和阅读论文，通过 Codex 侧栏提问，并把阅读成果放回 Obsidian。Windows 版使用本机 Codex 登录，不复制认证文件。
+在 Zotero 找到和阅读论文，通过 Codex 或 DeepSeek API 提问，并把阅读成果放回 Obsidian。Windows 版沿用本机 Codex 登录，或使用自己填写的 DeepSeek Key。
 
 ## 安装
+
+从 [0.3.0 发布页](https://github.com/anka-afk/PaperBridge/releases/tag/v0.3.0) 下载 `PaperBridge-Setup.exe`；源码和单独的 XPI 也在同一页面。
 
 1. 本机安装 Zotero 10、Obsidian 和 Codex；在 Codex 中完成登录。
 2. 双击 PaperBridge-Setup.exe，选择 Obsidian 知识库和 codex.exe，点击安装。
 3. 安装目录会自动打开。在 Zotero 的工具、插件、齿轮菜单选择 Install Plugin From File，分别安装三个 XPI，然后重启 Zotero。
 
-PaperBridge 0.2.0 加入笔记双向同步。桥接插件为 `paperbridge-0.2.0.xpi`，另需 Better Notes 3.3.3；已有 Codex 侧栏可继续使用。通过重新运行新版配置助手手动更新；清单使用保留的 .invalid 更新地址，不提供在线自动更新服务。
+PaperBridge 0.2.0 加入笔记双向同步。桥接插件为 `paperbridge-0.3.0.xpi`，另需 Better Notes 3.3.3；已有 Codex 侧栏可继续使用。通过重新运行新版配置助手手动更新；清单使用保留的 .invalid 更新地址，不提供在线自动更新服务。
 
 配置助手会把应用放在本机 LocalAppData/PaperBridge，把本机路径配置放在 RoamingAppData/PaperBridge，并在 Codex 的 config.toml 中加入一个有明确边界的 PaperBridge MCP 段。修改前自动备份配置，不复制或读取 Codex 认证文件。
 
 ## 日常使用
 
+- 打开论文后，点击右侧蓝色 AI 图标进入 PaperBridge AI，选择阅读模板并点击“应用到同步主笔记”。在“条目笔记”中打开 `PaperBridge · 论文名`，或在 Obsidian 打开配对的 Markdown；每篇论文只需应用一次模板，之后继续编辑同一份主笔记。
 - 新论文加入 Zotero 且 PDF 已下载后，自动在知识库的“科研/论文大学习/论文笔记/主题分类”下建立一份笔记。
 - 已有 Zotero 主题分类会优先沿用；没有分类时先放入待分类，再由 Codex 根据标题和摘要分类。无法确定或调用失败时保留待分类。
 - 在 PDF 阅读器右侧打开 Codex，选中文字后提问；需要保留多段文字时点击 Add to Codex。
@@ -47,3 +50,19 @@ Zotero 论文 item key 用于匹配笔记，须使用同一个同步文献库。
 AI 整理、个人笔记、原文批注各自有独立区域。每次自动写入先检测文件是否被其他程序修改；发生并发编辑时保留现有文件并要求重试。同一次写入请求重试不会重复追加。论文标题改动不会重新创建笔记，分类调整会移动对应笔记并保留全部内容。
 
 自动分类会把论文标题和摘要交给当前 Codex 登录。选择文字后发送提问时，相关原文按 Codex for Zotero 的上下文机制发送。个人笔记不会作为自动分类的输入。不会复制账号凭据到迁移包。
+
+## Codex 更新后连接恢复
+
+0.2.1 修复 Codex 更新后安装路径失效的问题。启动和后台检查会在旧路径失效时查找本机可用版本，并自动更新连接；已有有效的手动路径继续保留。
+
+## DeepSeek API 与模板入口
+
+0.3.0 在 Zotero 右侧新增 PaperBridge AI。问答来源可选择 Codex 账户或 DeepSeek API。DeepSeek 模式直接连接官方 API，不经过 Codex 登录；在设置中填写 Key 后点击保存，并可用“检查连接”验证。
+
+支持 Flash、Pro、深入思考、选中原文和可选 PDF 前 30 页正文。点击“记到 Obsidian”将最后一条完整回答保存到所选 AI 小节；自己的书写区不被覆盖。DeepSeek 模式不会执行任意命令，也不会由模型擅自写文件。
+
+三种阅读模板可在同一面板的下拉框选择，点击“应用到同步主笔记”；它与 Better Notes 自己的模板库是不同入口。
+
+Key 使用 Zotero 本机资料目录的加密能力保存，不写入知识库、模式配置或源码包。换电脑后需要重新填写。DeepSeek 对话按论文在本机分别保存，与 Codex 历史分开；切换来源不会复制另一端的聊天记录。DeepSeek 的请求按账户计费，论文参考资料只在发送问题时提交给官方 API。自动分类仍遵循原来的 Codex 配置。
+
+官方接口参考：[DeepSeek API 文档](https://api-docs.deepseek.com/)。

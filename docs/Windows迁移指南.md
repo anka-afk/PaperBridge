@@ -30,6 +30,8 @@ GitHub 分发 PaperBridge 软件版本；论文、笔记和登录信息各自迁
 | Codex 账号登录 | 新电脑自行登录，不复制认证文件 |
 | Codex 侧栏聊天历史 | 以侧栏和 Codex 自身能力为准，PaperBridge 不负责迁移 |
 
+DeepSeek 用户在新电脑安装后，需要在 PaperBridge AI 面板重新填写 Key。不要把 deepseek-secret.json 放入知识库或 Git；它依赖原电脑的 Zotero 资料目录解密。当前 DeepSeek 对话也保存在本机，不随论文配对索引迁移。
+
 不要用 Git 或网盘持续同步正在使用的 `zotero.sqlite` 数据库。Zotero 官方建议多电脑通过 Zotero Sync 同步；PDF 文件同步单独配置。
 
 Obsidian 官方 Sync 会排除 `.paperbridge` 这类隐藏目录。若使用它，首次迁移还需单独复制索引；后续配对变动也需更新索引。当前版本更适合能同步该目录的知识库 Git 或文件同步方式。Git 不会因为文件名前面有点就自动忽略它，但要检查自己的 `.gitignore`。
