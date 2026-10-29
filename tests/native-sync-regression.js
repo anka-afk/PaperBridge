@@ -51,6 +51,26 @@
    await h.atomic(path,text.slice(0,region.start)+'\n尚无批注。\n'+text.slice(region.end),text);h.paper=async i=>({...await read.call(h,i),annotations:[]});
    const lost=await h.noteSync.sync(second);check(lost.status==='conflict'&&target.getNote()===savedHTML,'lost Markdown plus empty source cannot clear annotations still present in Zotero');
   }finally{h.paper=read;}
+  // A real editor save removes annotation comments and adds link attributes.
+  const editedItem=new Zotero.Item('journalArticle');editedItem.setField('title','Synthetic editor annotation metadata regression');await editedItem.saveTx();
+  const editedPDF=await Zotero.Attachments.importFromFile({file:PathUtils.join(base,'state','fixture.pdf'),parentItemID:editedItem.id});
+  const editorAnnotation=new Zotero.Item('annotation');editorAnnotation.libraryID=editedPDF.libraryID;editorAnnotation.parentID=editedPDF.id;editorAnnotation.annotationType='highlight';editorAnnotation.annotationText='Synthetic editorAnnotation quotation';editorAnnotation.annotationComment='Synthetic editorAnnotation comment';editorAnnotation.annotationColor='#ffd400';editorAnnotation.annotationPageLabel='1';editorAnnotation.annotationSortIndex='00000|000000|00000';editorAnnotation.annotationPosition=JSON.stringify({pageIndex:0,rects:[[40,680,220,700]]});await editorAnnotation.saveTx();
+  check((await h.noteSync.sync(editedItem)).status==='synced','editor fixture starts with a real persisted annotation and baseline');
+  const eid=editedItem.libraryID+':'+editedItem.key,ee=(await h.index()).items[eid],en=await Zotero.Items.getByLibraryAndKeyAsync(editedItem.libraryID,ee.zoteroNoteKey),ep=h.resolve(ee.path),ek=Object.keys(PaperBridgeSyncCore.fields(await IOUtils.readUTF8(ep)));
+  let editable=h.noteSync.parse(en.getNote(),ek);editable.html.personal='<p>Synthetic personal findings from the Zotero editor.</p><ol><li>Keep this ordering</li></ol>';editable.html['方法']='<p>Synthetic AI method retained from Zotero.</p>';
+  const editorHTML=h.noteSync.render(editable.prefix,editable.html,ek).replace(/<!--\s*Zotero annotation [A-Z0-9]{8}\s*-->/g,'').replace(/<a href=/g,'<a rel="noopener noreferrer nofollow" href=');en.setNote(editorHTML);await en.saveTx();
+  const personalBefore=h.noteSync.parse(en.getNote(),ek).html.personal,oldAnnotations=h.noteSync.parse(en.getNote(),ek).html.annotations,records=h.noteSync.annotationRecords(oldAnnotations);
+  check(records?.has(editorAnnotation.key),'source-link identities survive when the editor removes comment markers');
+  const cache=await h.noteSync.state();cache.notes[eid].blocked={md:await IOUtils.readUTF8(ep),html:en.getNote(),backup:'synthetic-existing-conflict',reason:'Synthetic v0.3.2 metadata-only conflict',parserVersion:2};await h.noteSync.persist();
+  check((await h.noteSync.sync(editedItem)).status==='synced','legacy metadata-only conflict is re-evaluated and clears without choosing a side');
+  let pulled=await IOUtils.readUTF8(ep);check(PaperBridgeCore.region(pulled,'personal').body.includes('Synthetic personal findings'),'Zotero personal text reaches Obsidian automatically');check(PaperBridgeCore.region(pulled,'slot-方法').body.includes('Synthetic AI method'),'Zotero AI text reaches its Obsidian section');
+  check(h.noteSync.parse(en.getNote(),ek).html.personal===personalBefore,'personal rich text in Zotero stays exactly unchanged');
+  editable=h.noteSync.parse(en.getNote(),ek);en.setNote(h.noteSync.render(editable.prefix,editable.html,ek).replace(/<!--\s*Zotero annotation [A-Z0-9]{8}\s*-->/g,''));await en.saveTx();
+  editorAnnotation.annotationComment='Synthetic source comment updated in the PDF reader';await editorAnnotation.saveTx();
+  check((await h.noteSync.sync(editedItem)).status==='synced','legitimate PDF annotation edits are accepted after comment-marker removal');pulled=await IOUtils.readUTF8(ep);check(pulled.includes(editorAnnotation.annotationComment)&&en.getNote().includes(editorAnnotation.annotationComment),'updated source comment reaches both note copies');
+  editable=h.noteSync.parse(en.getNote(),ek);editable.html.annotations=editable.html.annotations.replace('Synthetic editorAnnotation quotation','Synthetic manual alteration inside the automatic section');en.setNote(h.noteSync.render(editable.prefix,editable.html,ek).replace(/<!--\s*Zotero annotation [A-Z0-9]{8}\s*-->/g,''));await en.saveTx();
+  const protectedHTML=en.getNote(),protectedMD=await IOUtils.readUTF8(ep);check((await h.noteSync.sync(editedItem)).status==='conflict','real annotation body changes still pause for review');check(en.getNote()===protectedHTML&&await IOUtils.readUTF8(ep)===protectedMD,'a real conflict preserves both complete note copies');
+  const visible=await h.known(editedItem);check(visible.noteReadWarning&&visible.zoteroNote?.html===protectedHTML,'read API exposes the Zotero copy and a warning when Obsidian is stale');
   report.ok=true;
  }catch(error){report.error=String(error.message||error);report.stack=String(error.stack||'');}
  await IOUtils.writeUTF8(PathUtils.join(base,'state','sync-regression-report.json'),JSON.stringify(report,null,2));

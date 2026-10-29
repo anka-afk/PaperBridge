@@ -3,6 +3,26 @@ const assert=require('node:assert/strict');
 const vm=require('node:vm');const fs=require('node:fs');const path=require('node:path');
 const C=require('../app/core.js');const S=require('../app/sync-core.js');
 const paper={title:'Synthetic annotated paper',key:'TEST1234',authors:[],annotations:[{key:'ANNO1234',text:'Original passage',comment:'Keep this comment',uri:'zotero://test'}]};
+test('批注比较忽略编辑器丢弃的生成标识，保留正文及其他注释差异',()=>{
+ const generated='> Original passage\n\nComment\n\n<!-- Zotero annotation ANNO1234 -->\n\n> Second passage';
+ const edited='> Original passage\n\nComment\n\n> Second passage';
+ assert.equal(S.annotationText(generated),S.annotationText(edited));
+ assert.notEqual(S.annotationText(generated),S.annotationText(edited.replace('Comment','Human changed comment')));
+ assert.notEqual(S.annotationText(edited),S.annotationText(edited+'\n<!-- personal extra -->'));
+});
+test('批注来源核对接受已去掉隐藏标识的相同原文',async()=>{
+ const scope={PaperBridgeSyncCore:S};vm.createContext(scope);vm.runInContext(fs.readFileSync(path.join(__dirname,'../plugin/note-sync.js'),'utf8'),scope);
+ const sync=new scope.PaperBridgeNoteSync({});sync.toMD=async(_note,value)=>value;
+ assert.equal(await sync.annotationsMatchSource({},'> Original passage\n\nComment','> Original passage\n\nComment\n\n<!-- Zotero annotation ANNO1234 -->',''),true);
+});
+test('读取冲突论文时明确区分两端副本，同时提供尚未传到 Obsidian 的 Zotero 正文',async()=>{
+ let reads=0;const n={key:'NOTE1234',parentItemID:42,isNote:()=>true,getNote:()=>'<p>Synthetic personal content still in Zotero</p>'};
+ const scope={Zotero:{Items:{getByLibraryAndKeyAsync:async()=>{reads++;return n;}}},IOUtils:{exists:async()=>true,readUTF8:async()=>''}};
+ vm.createContext(scope);vm.runInContext(fs.readFileSync(path.join(__dirname,'../plugin/bridge.js'),'utf8'),scope);
+ const host=new scope.PaperBridgeHost('');host.config={categories:[]};host.paper=async()=>({id:42,libraryID:1,key:'TEST1234'});host.index=async()=>({items:{'1:TEST1234':{zoteroNoteKey:n.key,path:'synthetic.md'}}});host.resolve=p=>p;host.noteSync={summary:async()=>({conflicts:[{key:'1:TEST1234'}]})};
+ const result=await host.known({id:42,libraryID:1});assert.equal(result.note,'');assert.match(result.zoteroNote.html,/Synthetic personal content/);assert.match(result.noteReadWarning,/不能据一端为空/);
+ host.noteSync.summary=async()=>({conflicts:[{key:'1:OTHER123'}]});const clear=await host.known({id:42,libraryID:1});assert.equal(clear.zoteroNote,undefined);assert.equal(reads,1);
+});
 test('启动读取为空或只返回部分批注时，保留原有批注而不清空',()=>{
  const md=C.create(paper),personal=C.region(md,'personal').body;
  assert.throws(()=>C.sync(md,{...paper,annotations:[]}),/批注列表减少/);
