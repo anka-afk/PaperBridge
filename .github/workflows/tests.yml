@@ -11,3 +11,9 @@ jobs:
         with:
           node-version: '24'
       - run: node --test tests/*.test.cjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python prepare-dependencies.py
+      - run: python build.py
+      - run: python tests/installer-smoke.py dist/PaperBridge-Setup.exe

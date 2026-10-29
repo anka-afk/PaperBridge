@@ -14,7 +14,7 @@ GitHub 分发 PaperBridge 软件版本；论文、笔记和登录信息各自迁
 1. 安装 Zotero 10、Obsidian、Codex，并各自登录。Zotero 使用同一账号，等待文库与 PDF 下载完成。
 2. 下载或克隆自己的知识库，保留完整目录结构。用 Obsidian 的“打开本地仓库”打开它。
 3. 从 PaperBridge 的 GitHub Release 下载 `PaperBridge-Setup.exe`。运行后选择本机知识库和 `codex.exe`，点击“安装 / 更新本机配置”。路径可以与旧电脑不同。
-4. 在 Zotero 的插件管理器，从安装目录的 plugins 文件夹安装 PaperBridge、Better Notes 和 Codex 侧栏三个 XPI，然后重启 Zotero。
+4. 在 Zotero 的插件管理器，从安装目录的 plugins 文件夹安装 PaperBridge、Better Notes、Codex 官方侧栏和独立阅读兼容补丁四个 XPI，然后重启 Zotero。
 5. 重新打开 Codex 或开启新聊天，让本机 PaperBridge 接口加载。
 6. 找一篇已同步的论文，打开 `PaperBridge · 论文名` 子笔记，核对 Obsidian 对应文件。先做一处容易辨认的小修改，切换应用，确认两端出现同样内容，再开始正常阅读。
 
