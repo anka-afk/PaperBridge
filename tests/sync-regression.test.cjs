@@ -21,7 +21,7 @@ test('读取冲突论文时明确区分两端副本，同时提供尚未传到 O
  vm.createContext(scope);vm.runInContext(fs.readFileSync(path.join(__dirname,'../plugin/bridge.js'),'utf8'),scope);
  const host=new scope.PaperBridgeHost('');host.config={categories:[]};host.paper=async()=>({id:42,libraryID:1,key:'TEST1234'});host.index=async()=>({items:{'1:TEST1234':{zoteroNoteKey:n.key,path:'synthetic.md'}}});host.resolve=p=>p;host.noteSync={summary:async()=>({conflicts:[{key:'1:TEST1234'}]})};
  const result=await host.known({id:42,libraryID:1});assert.equal(result.note,'');assert.match(result.zoteroNote.html,/Synthetic personal content/);assert.match(result.noteReadWarning,/不能据一端为空/);
- host.noteSync.summary=async()=>({conflicts:[{key:'1:OTHER123'}]});const clear=await host.known({id:42,libraryID:1});assert.equal(clear.zoteroNote,undefined);assert.equal(reads,1);
+ host.noteSync.summary=async()=>({conflicts:[{key:'1:OTHER123'}]});const clear=await host.known({id:42,libraryID:1});assert.match(clear.zoteroNote.html,/Synthetic personal content/);assert.equal(clear.noteReadWarning,undefined);assert.equal(reads,2);
 });
 test('启动读取为空或只返回部分批注时，保留原有批注而不清空',()=>{
  const md=C.create(paper),personal=C.region(md,'personal').body;

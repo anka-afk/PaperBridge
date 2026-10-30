@@ -68,6 +68,19 @@
   editable=h.noteSync.parse(en.getNote(),ek);en.setNote(h.noteSync.render(editable.prefix,editable.html,ek).replace(/<!--\s*Zotero annotation [A-Z0-9]{8}\s*-->/g,''));await en.saveTx();
   editorAnnotation.annotationComment='Synthetic source comment updated in the PDF reader';await editorAnnotation.saveTx();
   check((await h.noteSync.sync(editedItem)).status==='synced','legitimate PDF annotation edits are accepted after comment-marker removal');pulled=await IOUtils.readUTF8(ep);check(pulled.includes(editorAnnotation.annotationComment)&&en.getNote().includes(editorAnnotation.annotationComment),'updated source comment reaches both note copies');
+  // Recreate an otherwise identical source annotation to reproduce migrated IDs.
+  const oldKey=editorAnnotation.key,replacement=new Zotero.Item('annotation');replacement.libraryID=editedPDF.libraryID;replacement.parentID=editedPDF.id;
+  for(const property of ['annotationType','annotationText','annotationComment','annotationColor','annotationPageLabel','annotationSortIndex','annotationPosition'])replacement[property]=editorAnnotation[property];
+  await editorAnnotation.eraseTx();await replacement.saveTx();
+  editable=h.noteSync.parse(en.getNote(),ek);editable.html.personal+='<p>Synthetic personal edit made while IDs changed.</p>';
+  en.setNote(h.noteSync.render(editable.prefix,editable.html,ek).replace(/<!--\s*Zotero annotation [A-Z0-9]{8}\s*-->/g,''));await en.saveTx();
+  const beforeRekey=h.noteSync.parse(en.getNote(),ek).html.personal;
+  check((await h.noteSync.sync(editedItem)).status==='synced','identical annotation with a new ID resumes synchronization');
+  pulled=await IOUtils.readUTF8(ep);check(pulled.includes(replacement.key)&&!pulled.includes('annotation='+oldKey),'Markdown source links use the current annotation ID');
+  check(en.getNote().includes(replacement.key)&&!en.getNote().includes('annotation='+oldKey),'Zotero source links use the current annotation ID');
+  check(PaperBridgeCore.region(pulled,'personal').body.includes('Synthetic personal edit made while IDs changed.'),'personal edit reaches Obsidian after rekeying');
+  check(h.noteSync.parse(en.getNote(),ek).html.personal===beforeRekey,'annotation rekeying preserves personal rich text exactly');
+  const forcedSummary=h.noteSync.summary;try{h.noteSync.summary=async()=>({paused:[{key:eid,reason:'Synthetic paused source'}]});const pausedRead=await h.known(editedItem);check(pausedRead.noteReadWarning&&pausedRead.zoteroNote?.html===en.getNote(),'paused-state reads expose the current Zotero note');}finally{h.noteSync.summary=forcedSummary;}
   editable=h.noteSync.parse(en.getNote(),ek);editable.html.annotations=editable.html.annotations.replace('Synthetic editorAnnotation quotation','Synthetic manual alteration inside the automatic section');en.setNote(h.noteSync.render(editable.prefix,editable.html,ek).replace(/<!--\s*Zotero annotation [A-Z0-9]{8}\s*-->/g,''));await en.saveTx();
   const protectedHTML=en.getNote(),protectedMD=await IOUtils.readUTF8(ep);check((await h.noteSync.sync(editedItem)).status==='conflict','real annotation body changes still pause for review');check(en.getNote()===protectedHTML&&await IOUtils.readUTF8(ep)===protectedMD,'a real conflict preserves both complete note copies');
   const visible=await h.known(editedItem);check(visible.noteReadWarning&&visible.zoteroNote?.html===protectedHTML,'read API exposes the Zotero copy and a warning when Obsidian is stale');
