@@ -11,10 +11,34 @@
   function metadata(p){const authors=(p.authors||[]).join('；');return `- 作者：${authors}\n- 年份：${p.date||''}\n- 发表信息：${p.publication||p.repository||''}\n- 分类：${(p.categories||[]).join('；')}\n- Zotero：[打开条目](${p.itemURI})\n- PDF：[打开原文](${p.pdfURI||p.itemURI})\n- 论文链接：${p.url||''}`;}
   function annotations(p){return (p.annotations||[]).slice(0,1000).map(a=>`> ${(a.text||'').replace(/\n/g,'\n> ')}\n\n${a.comment?'批注：'+a.comment+'\n\n':''}[第 ${a.page||'?'} 页](${a.uri})\n\n<!-- Zotero annotation ${a.key} -->`).join('\n\n')||'尚无批注。';}
   function create(p,mode='速读筛选'){if(!MODES[mode])throw new Error('未知阅读类型'); const title=String(p.title||'未命名论文').replace(/\r?\n/g,' ');return `---\n论文标题: ${JSON.stringify(title)}\nzotero_key: ${JSON.stringify(p.key)}\n阅读类型: ${mode}\ntags: [论文, PaperBridge]\n---\n\n# ${title}\n\n${marker('metadata','start')}\n${metadata(p)}\n${marker('metadata','end')}\n\n# AI 整理\n\n${marker('ai','start')}\n${MODES[mode].map(slot).join('\n\n')}\n${marker('ai','end')}\n\n# 我的笔记\n\n${marker('personal','start')}\n\n${marker('personal','end')}\n\n# 原文批注\n\n${marker('annotations','start')}\n${annotations(p)}\n${marker('annotations','end')}\n`;}
-  function sync(text,p){region(text,'personal');region(text,'ai');const previous=region(text,'annotations').body,known=[...previous.matchAll(/<!-- Zotero annotation ([A-Z0-9]{8}) -->/g)].map(m=>m[1]),incoming=new Set((p.annotations||[]).map(a=>a.key));if(known.some(key=>!incoming.has(key)))throw Error('批注列表减少或尚未加载完整，已保留原文批注并暂停覆盖；请确认 Zotero 同步和批注删除情况');let s=replace(text,'metadata',metadata(p));return replace(s,'annotations',annotations(p));}
+  function annotationIdentity(record,key){
+    let found=false;
+    const body=String(record).replace(/\r\n/g,'\n').trim().replace(/\s*<!-- Zotero annotation [A-Z0-9]{8} -->$/,'').trim();
+    // Only the generated final source link may lose its identity. Keep the PDF,
+    // page, quote, comment, and any links within the quote in the comparison.
+    const identity=body.replace(/(\]\(zotero:\/\/open-pdf\/(?:library|groups\/\d+)\/items\/[A-Z0-9]{8}\?[^()\n]*[?&]annotation=)([A-Z0-9]{8})(\))$/,(_all,prefix,id,end)=>{if(id!==key)return _all;found=true;return prefix+'ANNOTATION'+end;});
+    return found?identity:null;
+  }
+  function annotationKeyMap(previous,current){
+    const groups=records=>{const out=new Map();for(const [key,body]of records){const identity=annotationIdentity(body,key);if(identity===null)continue;const keys=out.get(identity)||[];keys.push(key);out.set(identity,keys);}return out;};
+    const old=groups(previous),next=groups(current),mapping=new Map();
+    for(const [identity,keys]of old){const candidates=next.get(identity);if(keys.length===1&&candidates?.length===1&&!current.has(keys[0])&&!previous.has(candidates[0]))mapping.set(keys[0],candidates[0]);}
+    return mapping;
+  }
+  function sync(text,p){
+    region(text,'personal');region(text,'ai');
+    const previous=region(text,'annotations').body,known=[...previous.matchAll(/<!-- Zotero annotation ([A-Z0-9]{8}) -->/g)].map(m=>m[1]),incoming=new Set((p.annotations||[]).map(a=>a.key));
+    if(known.some(key=>!incoming.has(key))){
+      const records=new Map();let end=0;
+      for(const m of previous.matchAll(/([\s\S]*?)<!-- Zotero annotation ([A-Z0-9]{8}) -->/g)){if(records.has(m[2]))throw Error('批注标识重复，已暂停同步');records.set(m[2],m[0]);end=m.index+m[0].length;}
+      const current=new Map((p.annotations||[]).map(a=>[a.key,annotations({annotations:[a]})])),rekeys=annotationKeyMap(records,current);
+      if(previous.slice(end).trim()||known.some(key=>!incoming.has(key)&&!rekeys.has(key)))throw Error('批注列表减少或尚未加载完整，已保留原文批注并暂停覆盖；请确认 Zotero 同步和批注删除情况');
+    }
+    let s=replace(text,'metadata',metadata(p));return replace(s,'annotations',annotations(p));
+  }
   function append(text,section,markdown,id,source){if(!SECTIONS.includes(section))throw new Error('不支持的笔记位置'); if(typeof markdown!=='string'||!markdown.trim()||markdown.length>60000||/<!--\s*pb:/i.test(markdown))throw new Error('笔记内容无效或含保护标记'); if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))throw new Error('记录标识无效');const ai=region(text,'ai');region(text,'personal');if(ai.body.includes(`<!-- pb:entry:${id} -->`))return {text,duplicate:true};let body=ai.body;const target='slot-'+section;if(!body.includes(marker(target,'start')))body+='\n\n'+slot(section)+'\n';const r=region(body,target);const reference=source&&source.uri?`\n\n原文依据：[第 ${source.page||'?'} 页](${source.uri})`:'';const entry=`<!-- pb:entry:${id} -->\n${markdown.trim()}${reference}\n`;body=replace(body,target,r.body+'\n\n'+entry);return {text:replace(text,'ai',body),duplicate:false};}
   function mode(text,value){if(!MODES[value])throw new Error('未知阅读类型');region(text,'personal');const ai=region(text,'ai');let body=ai.body;for(const s of MODES[value])if(!body.includes(marker('slot-'+s,'start')))body+='\n\n'+slot(s);return replace(text.replace(/^阅读类型:.*$/m,'阅读类型: '+value),'ai',body);}
   function category(p,categories=CATEGORIES){const choices=categories.filter(c=>c!=='待分类');const existing=(p.categories||[]).find(c=>choices.includes(c));if(existing)return {category:existing,reason:'Zotero 分类'};return {category:'待分类',reason:'等待 Codex 分类'};}
-  const api={CATEGORIES,MODES,SECTIONS,segment,region,create,sync,append,mode,category};
+  const api={CATEGORIES,MODES,SECTIONS,segment,region,create,sync,append,mode,category,annotationIdentity,annotationKeyMap};
   if(typeof module==='object'&&module.exports)module.exports=api; else root.PaperBridgeCore=api;
 })(globalThis);

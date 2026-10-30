@@ -1,10 +1,12 @@
-# PaperBridge 0.3.3
+# PaperBridge 0.3.4
 
 在 Zotero 找到和阅读论文，通过 Codex 或 DeepSeek API 提问，并把阅读成果放回 Obsidian。Windows 版沿用本机 Codex 登录，或使用自己填写的 DeepSeek Key。
 
 ## 安装
 
 从 [发布页](https://github.com/anka-afk/PaperBridge/releases) 下载 `PaperBridge-Setup.exe`；源码和单独的 XPI 也在同一页面。
+
+0.3.4 修复批注内容一致但 ID 改变时的同步误暂停；读取接口始终提供 Zotero 当前笔记，并在暂停时提示 Obsidian 副本可能过期。详见[本次修复说明](docs/RELEASE-v0.3.4.md)。已有用户只需更新 PaperBridge 主插件。
 
 0.3.3 修复 Zotero 编辑笔记后，隐藏批注标识被移除导致整篇同步误暂停的问题，详见[本次修复说明](docs/RELEASE-v0.3.3.md)。已有用户只需更新 PaperBridge 主插件。
 
@@ -14,7 +16,7 @@
 2. 双击 PaperBridge-Setup.exe，选择 Obsidian 知识库和 codex.exe，点击安装。
 3. 安装目录会自动打开。在 Zotero 的工具、插件、齿轮菜单选择 Install Plugin From File，分别安装四个 XPI：PaperBridge、Better Notes、Codex 官方侧栏、Reader Compatibility，然后重启 Zotero。配置助手会准备这四个插件文件，仍需在 Zotero 中完成安装。
 
-PaperBridge 0.2.0 加入笔记双向同步。桥接插件为 `paperbridge-0.3.3.xpi`，另需 Better Notes 3.3.3；已有官方 Codex 侧栏可继续使用，旧定制版侧栏的迁移见下文。PaperBridge 自有插件通过新版配置助手手动更新；清单使用保留的 .invalid 更新地址，不提供在线自动更新服务。Codex 官方侧栏保留其官方更新地址。
+PaperBridge 0.2.0 加入笔记双向同步。桥接插件为 `paperbridge-0.3.4.xpi`，另需 Better Notes 3.3.3；已有官方 Codex 侧栏可继续使用，旧定制版侧栏的迁移见下文。PaperBridge 自有插件通过新版配置助手手动更新；清单使用保留的 .invalid 更新地址，不提供在线自动更新服务。Codex 官方侧栏保留其官方更新地址。
 
 配置助手会把应用放在本机 LocalAppData/PaperBridge，把本机路径配置放在 RoamingAppData/PaperBridge，并在 Codex 的 config.toml 中加入一个有明确边界的 PaperBridge MCP 段。修改前自动备份配置，不复制或读取 Codex 认证文件。
 
