@@ -1,83 +1,96 @@
-# PaperBridge 0.3.4
+# PaperBridge
 
-在 Zotero 找到和阅读论文，通过 Codex 或 DeepSeek API 提问，并把阅读成果放回 Obsidian。Windows 版沿用本机 Codex 登录，或使用自己填写的 DeepSeek Key。
+在 Zotero 里读论文，用 Codex 或 DeepSeek 提问，再把阅读笔记同步到 Obsidian。
+
+目前支持 Windows x64 和 Zotero 10。Codex 沿用本机登录，DeepSeek 使用自己的 API Key。
+
+当前版本：0.3.4（[更新说明](docs/RELEASE-v0.3.4.md)）。
+
+## 能做什么
+
+- 在 PDF / HTML 阅读页划选原文提问，需要时可以把多段文字加入上下文。
+- 用速读筛选、科研分析、精读复现三种模板整理论文。
+- 新论文下载 PDF 后自动建立笔记，并按 Zotero 中已有的主题分类归档。
+- 将 Zotero 条目笔记和 Obsidian Markdown 双向同步。
+- 分开保存文献信息、原文批注、AI 整理和个人笔记，互不混在一起。
 
 ## 安装
 
-从 [发布页](https://github.com/anka-afk/PaperBridge/releases) 下载 `PaperBridge-Setup.exe`；源码和单独的 XPI 也在同一页面。
+1. 安装 Zotero 10、Obsidian 和 Codex，并在 Codex 中登录。
+2. 从 [发布页](https://github.com/anka-afk/PaperBridge/releases) 下载 `PaperBridge-Setup.exe`。
+3. 运行安装器，选择 Obsidian 知识库和 `codex.exe`，点击“安装 / 更新本机配置”。
+4. 安装完成后，在 Zotero 的“工具 → 插件 → 齿轮菜单 → Install Plugin From File”中，依次安装安装目录里的四个 XPI：
+   - PaperBridge
+   - Better Notes
+   - Codex 官方侧栏
+   - Reader Compatibility
+5. 重启 Zotero。
 
-0.3.4 修复批注内容一致但 ID 改变时的同步误暂停；读取接口始终提供 Zotero 当前笔记，并在暂停时提示 Obsidian 副本可能过期。详见[本次修复说明](docs/RELEASE-v0.3.4.md)。已有用户只需更新 PaperBridge 主插件。
+程序安装在 `%LOCALAPPDATA%\PaperBridge`，本机路径配置保存在 `%APPDATA%\PaperBridge`。配置助手会备份修改前的 Codex 配置，不会复制或读取 Codex 认证文件。
 
-0.3.3 修复 Zotero 编辑笔记后，隐藏批注标识被移除导致整篇同步误暂停的问题，详见[本次修复说明](docs/RELEASE-v0.3.3.md)。已有用户只需更新 PaperBridge 主插件。
+PaperBridge 和阅读兼容补丁目前随安装包手动更新，Codex 官方侧栏仍使用自己的更新渠道。以前装过 PaperBridge 定制侧栏的话，先看[兼容补丁说明](reader-compat/README.md)。
 
-0.3.2 将 HTML 选区修复拆为独立兼容插件，并随 Windows 安装器一起分发，详见[本次发布与升级步骤](docs/RELEASE-v0.3.2.md)。它包含 0.3.1 的同步标题和批注修复；多电脑使用时，请先备份并将各台电脑升级后再继续同步。
+## 开始读论文
 
-1. 本机安装 Zotero 10、Obsidian 和 Codex；在 Codex 中完成登录。
-2. 双击 PaperBridge-Setup.exe，选择 Obsidian 知识库和 codex.exe，点击安装。
-3. 安装目录会自动打开。在 Zotero 的工具、插件、齿轮菜单选择 Install Plugin From File，分别安装四个 XPI：PaperBridge、Better Notes、Codex 官方侧栏、Reader Compatibility，然后重启 Zotero。配置助手会准备这四个插件文件，仍需在 Zotero 中完成安装。
+1. 打开论文，点击右侧蓝色 AI 图标进入 PaperBridge AI。
+2. 选择阅读模板，点击“应用到同步主笔记”。每篇论文只需应用一次，之后继续编辑同一份笔记。
+3. 选中原文后提问。需要保留多段文字时，点击 Add to Codex。
+4. 想让 Codex 记笔记，直接说“把刚才的解释记到方法小节”或“把这个疑问记到问答”。
 
-PaperBridge 0.2.0 加入笔记双向同步。桥接插件为 `paperbridge-0.3.4.xpi`，另需 Better Notes 3.3.3；已有官方 Codex 侧栏可继续使用，旧定制版侧栏的迁移见下文。PaperBridge 自有插件通过新版配置助手手动更新；清单使用保留的 .invalid 更新地址，不提供在线自动更新服务。Codex 官方侧栏保留其官方更新地址。
+笔记既可以在 Zotero 的“条目笔记”中打开，也可以在 Obsidian 中编辑。Zotero 里的名称是 `PaperBridge · 论文名`，Obsidian 中对应 `论文笔记/主题分类/标题--key.md`。
 
-配置助手会把应用放在本机 LocalAppData/PaperBridge，把本机路径配置放在 RoamingAppData/PaperBridge，并在 Codex 的 config.toml 中加入一个有明确边界的 PaperBridge MCP 段。修改前自动备份配置，不复制或读取 Codex 认证文件。
+没有主题分类的论文会先放进“待分类”，再由 Codex 根据标题和摘要判断。无法确定或调用失败时，就留在“待分类”。
 
-## 日常使用
+## 笔记同步
 
-- 打开论文后，点击右侧蓝色 AI 图标进入 PaperBridge AI，选择阅读模板并点击“应用到同步主笔记”。在“条目笔记”中打开 `PaperBridge · 论文名`，或在 Obsidian 打开配对的 Markdown；每篇论文只需应用一次模板，之后继续编辑同一份主笔记。
-- 新论文加入 Zotero 且 PDF 已下载后，自动在知识库的“科研/论文大学习/论文笔记/主题分类”下建立一份笔记。
-- 已有 Zotero 主题分类会优先沿用；没有分类时先放入待分类，再由 Codex 根据标题和摘要分类。无法确定或调用失败时保留待分类。
-- 在 PDF / HTML 阅读器右侧打开 Codex，选中文字后提问；需要保留多段文字时点击 Add to Codex。
-- 想记录时直接说：“把刚才的解释记到这篇论文的方法小节”“把这个疑问记到问答”“这篇用精读复现模板”。Codex 会通过 PaperBridge 定向写入。
-- 在 Obsidian 的“我的笔记”区自由书写。自动同步只更新文献信息、批注和 AI 整理区。
-- 保护标记是 HTML 注释，阅读视图中不可见。不要删除 pb 开头的保护标记；标记损坏时程序会拒绝写入，避免覆盖个人内容。
-- 默认速读筛选。科研分析和精读复现会增加相应的小节，保留已有记录。
+每篇论文只有一份配对笔记。“条目笔记”和“所有笔记”只是 Zotero 中的两个入口，已有的其他笔记不会被合并或删除。
 
-## Zotero 条目笔记双向同步
+| 区域 | 怎么编辑 |
+| --- | --- |
+| 文献信息、原文批注 | 由 Zotero 管理和更新，不要在自动批注区写个人内容 |
+| AI 整理 | Codex 通过 PaperBridge 写入，也可以在 Zotero 或 Obsidian 中修改 |
+| 我的笔记 | 自己写，AI 工具不会覆盖 |
 
-每篇论文会建立一份带 PaperBridge 前缀和标签的 Zotero 子笔记，与“论文笔记/主题分类/标题--key.md”配对。它会同时出现在 Zotero 的“条目笔记”和“所有笔记”中；这是同一份笔记的两个入口。已有的其他 Zotero 笔记及独立笔记保持原样。
+Zotero 保持运行时，两端通常会在切换应用或离开编辑区后约 5 秒同步。使用 DeepSeek 时，点击“记到 Obsidian”可以把最后一条完整回答保存到所选的 AI 小节。
 
-- AI 整理和我的笔记两个区域都可在 Zotero 或 Obsidian 编辑，通常在切换到另一端或离开 Zotero 编辑区后约 5 秒同步；Zotero 需保持运行。Codex 仍只写 AI 整理区。
-- Zotero 笔记使用“AI · 方法”等小节标题定位，请保留这些标题；Obsidian 中继续保留 pb 保护标记。
-- 不同小节的双边修改可以合并；同一小节两边均修改时暂停，保留两端与共同版本的副本在 `.paperbridge/conflicts`。可让 Codex 查询同步状态，但只有你明确选择来源后才进行覆盖恢复。
-- PDF 原文批注仍由 Zotero 管理并自动更新。不要在同步子笔记的“原文批注（自动）”区填写个人内容。
-- 删除配对笔记或移动/删除 Markdown 时暂停，不会顺带删除另一端。
-- 0.3.1 修复首次迁移冲突后的空小节重复追加。已有批注标识减少、尚未同步完整或转换意外返回空内容时，保留旧内容并暂停覆盖；确实删除批注时需先核对删除情况。
-- Better Notes 负责富文本、Markdown、标准图片和公式等格式转换，PaperBridge 负责配对、定时同步和冲突保护。无需再把同一主笔记加入 Better Notes 自己的整文件自动同步列表。
-- Zotero 富文本不包含所有 Obsidian 专属语法。双链、嵌入和块引用等在 Zotero 中可能作为文本显示；Zotero 修改后该小节的 Markdown 排版可能被规范化。未修改的小节保持原文。
+几点注意：
+
+- 保留 `pb` 开头的 HTML 注释和“AI · 方法”等小节标题，同步靠它们定位。标记损坏时会停止写入。
+- 不同小节的双边修改可以合并；同一小节两边都改过时会暂停，并把副本保存到 `.paperbridge/conflicts`。选择以哪一端为准后再恢复。
+- 删除配对笔记、移动或删除 Markdown 也会暂停同步，不会顺带删除另一端。
+- 不要再把同一份主笔记加入 Better Notes 的整文件自动同步，两个同步引擎会抢写同一份文件。
+- Zotero 不支持所有 Obsidian 语法。双链、嵌入和块引用可能只显示为文本，Zotero 修改过的小节也可能被重新排版；未修改的小节保持原文。
+
+## DeepSeek
+
+PaperBridge AI 的问答来源可以切换为 DeepSeek API。支持 Flash、Pro、深入思考、选中原文，以及可选的 PDF 前 30 页正文。
+
+Key 加密保存在本机状态目录，不会写进知识库，换电脑后需要重新填写。DeepSeek 对话按论文保存在本机，和 Codex 聊天记录分开；自动分类仍使用 Codex。
+
+论文参考资料只在你发送问题时提交给 DeepSeek 官方 API，费用由自己的 API 账户承担。接口说明见 [DeepSeek API 文档](https://api-docs.deepseek.com/)。
 
 ## 换电脑
 
-详细步骤见 [Windows 迁移指南](docs/Windows迁移指南.md)。
+软件、Zotero 数据和 Obsidian 知识库需要分别迁移。除了 Markdown 和图片，记得一起同步 `.paperbridge/index.json`，它保存论文与笔记的配对关系。
 
-在另一台 Windows 电脑安装三个应用并分别登录；通过 Zotero 同步文献和 PDF，通过自己的知识库同步方式同步 Markdown 和 .paperbridge 索引。运行同一个安装包重新选择本机路径，再安装四个 Zotero 插件。无需沿用原电脑的用户名或磁盘路径。Codex 账号由每台电脑自行登录。
+新电脑重新运行安装器并选择本机路径即可，不用沿用旧电脑的用户名或磁盘路径。Codex 和 DeepSeek 都需要在新电脑上重新登录或填写 Key。
 
-Zotero 论文 item key 用于匹配笔记，须使用同一个同步文献库。Codex 对话是否在设备间同步取决于 Codex 自身；PaperBridge 不声称同步聊天历史。只复制 Markdown 而没有 Zotero 对应条目时，原文回链可能无法打开。
+具体步骤和同步方式见 [Windows 换电脑指南](docs/Windows迁移指南.md)。
 
-## 数据与记录
+## 其他说明
 
-AI 整理、个人笔记、原文批注各自有独立区域。每次自动写入先检测文件是否被其他程序修改；发生并发编辑时保留现有文件并要求重试。同一次写入请求重试不会重复追加。论文标题改动不会重新创建笔记，分类调整会移动对应笔记并保留全部内容。
+### 阅读兼容补丁
 
-自动分类会把论文标题和摘要交给当前 Codex 登录。选择文字后发送提问时，相关原文按 Codex for Zotero 的上下文机制发送。个人笔记不会作为自动分类的输入。不会复制账号凭据到迁移包。
+Reader Compatibility 用来解决 HTML 阅读页划词后 Codex 收不到原文的问题，并保留弹窗关闭后的当前选区。它不改官方 XPI；官方侧栏更新后，补丁会重新检查并挂接。
 
-## 独立阅读兼容补丁
+如果划词没有反应，打开 Zotero 的“工具 → 阅读兼容补丁状态…”看看。安装、旧侧栏迁移和停用方法见[兼容补丁说明](reader-compat/README.md)。
 
-0.3.2 随附独立插件 `paperbridge-reader-compat-0.1.0.xpi`，修复 HTML 阅读器选中文字后没有带入 Codex 的问题，并保留弹窗关闭后的当前选区。它不修改 Codex 官方插件文件；官方侧栏启动或替换后，补丁会重新检查并挂接。
+### Codex 路径恢复
 
-本安装包里的 Codex XPI 保持官方原包及其更新地址。之前安装过 PaperBridge 定制侧栏 `2026.299.1.1 / 2026.299.1.2` 的用户，需同时安装独立兼容插件和官方侧栏，再重启 Zotero，才能恢复官方更新渠道。官方侧栏在安装目录中名为 `codex-for-zotero.xpi`，单独发布的附件名为 `codex-for-zotero-official.xpi`，两者内容相同。只安装独立补丁不会改变旧定制版的更新地址。
+Codex 更新后，如果原来的程序路径失效，PaperBridge 会查找本机可用版本并更新连接。仍然有效的手动路径不会被改动。
 
-在 Zotero 的“工具 → 阅读兼容补丁状态…”可查看是否生效。若官方以后更改内部接口，补丁可能需要更新；检测到接口不兼容时会停止挂接并显示原因。独立补丁当前随 PaperBridge 手动更新，详情见 [兼容补丁说明](reader-compat/README.md)。
+## 数据说明
 
-## Codex 更新后连接恢复
+自动分类会把论文标题和摘要发给当前登录的 Codex。提问时，选中文字或读取的论文片段会随请求发送给所选的模型服务；个人笔记不会用于自动分类。
 
-0.2.1 修复 Codex 更新后安装路径失效的问题。启动和后台检查会在旧路径失效时查找本机可用版本，并自动更新连接；已有有效的手动路径继续保留。
-
-## DeepSeek API 与模板入口
-
-0.3.0 在 Zotero 右侧新增 PaperBridge AI。问答来源可选择 Codex 账户或 DeepSeek API。DeepSeek 模式直接连接官方 API，不经过 Codex 登录；在设置中填写 Key 后点击保存，并可用“检查连接”验证。
-
-支持 Flash、Pro、深入思考、选中原文和可选 PDF 前 30 页正文。点击“记到 Obsidian”将最后一条完整回答保存到所选 AI 小节；自己的书写区不被覆盖。DeepSeek 模式不会执行任意命令，也不会由模型擅自写文件。
-
-三种阅读模板可在同一面板的下拉框选择，点击“应用到同步主笔记”；它与 Better Notes 自己的模板库是不同入口。
-
-Key 使用 Zotero 本机资料目录的加密能力保存，不写入知识库、模式配置或源码包。换电脑后需要重新填写。DeepSeek 对话按论文在本机分别保存，与 Codex 历史分开；切换来源不会复制另一端的聊天记录。DeepSeek 的请求按账户计费，论文参考资料只在发送问题时提交给官方 API。自动分类仍遵循原来的 Codex 配置。
-
-官方接口参考：[DeepSeek API 文档](https://api-docs.deepseek.com/)。
+仓库和安装包不包含你的论文、笔记、聊天记录、API Key 或账号认证文件。详见[数据说明](docs/数据说明.md)。

@@ -1,23 +1,23 @@
 # PaperBridge 0.3.2
 
-HTML 阅读时划选原文后，Codex 可能只收到论文信息，没有收到选中的句子；关闭选区弹窗后，选区也可能丢失。本版新增独立的 Reader Compatibility 0.1.0，补齐阅读器上下文并保留当前选区。单段选中即问，无需点击 Add；需要固定多段内容时仍可使用 Add。
+HTML 阅读页划选原文后，Codex 有时只收到论文信息，没有收到选中的句子；关闭选区弹窗后，选区也可能丢失。这版新增独立的 Reader Compatibility 0.1.0，解决这两个问题。
 
-修复不再内嵌到 Codex 官方插件中。官方 XPI 保持原样及其更新地址，兼容插件在侧栏启动或替换后重新检查并挂接。若未来内部接口变化，可能需要更新兼容插件；在“工具 → 阅读兼容补丁状态…”可检查是否启用。
+现在单段选中就能提问，不用点 Add；需要固定多段内容时仍可以使用 Add。
 
-## Windows 安装与升级
+修复不再内嵌到 Codex 官方插件中。官方 XPI 和更新地址保持原样，兼容插件会在侧栏启动或替换后重新挂接。如果官方以后更改内部接口，补丁可能需要更新，可以在“工具 → 阅读兼容补丁状态…”中检查。
 
-- 新电脑：下载 `PaperBridge-Setup.exe`，选择知识库和 Codex 路径。安装器会一起准备 PaperBridge 0.3.2、Better Notes 3.3.3、Codex 官方侧栏和 Reader Compatibility 0.1.0 四个 XPI；随后按提示在 Zotero 插件管理器中从文件安装并重启。
-- 已有官方侧栏和 Better Notes：更新 `paperbridge-0.3.2.xpi` 并新增 `paperbridge-reader-compat-0.1.0.xpi`，无需重装已正常工作的官方侧栏。
-- 曾安装定制侧栏 `2026.299.1.1 / 2026.299.1.2`：除上述两个插件外，还需安装 `codex-for-zotero-official.xpi`，恢复官方更新渠道。安装目录里的同一原包名为 `codex-for-zotero.xpi`。无需先卸载侧栏或删除账号设置。
-- 配置助手升级时将安装目录里旧版的自有 XPI 和旧定制侧栏包归档，避免插件目录混入多个旧安装包。它不会直接修改 Zotero 资料目录中的已安装插件。
+## 安装与升级
 
-内附官方侧栏的固定版本为 2026.299.1；保留官方更新渠道不代表承诺兼容所有后续版本。PaperBridge 与 Reader Compatibility 自身继续采用手动更新。
+- 新电脑：运行 `PaperBridge-Setup.exe`，选择知识库和 Codex 路径。安装器会准备 PaperBridge 0.3.2、Better Notes 3.3.3、Codex 官方侧栏和 Reader Compatibility 0.1.0，按提示在 Zotero 中安装并重启。
+- 已有官方侧栏和 Better Notes：更新 `paperbridge-0.3.2.xpi`，再安装 `paperbridge-reader-compat-0.1.0.xpi`，官方侧栏不用重装。
+- 曾安装定制侧栏 `2026.299.1.1 / 2026.299.1.2`：除上面两个插件外，还要安装 `codex-for-zotero-official.xpi`，恢复官方更新渠道。安装目录里的同一文件名为 `codex-for-zotero.xpi`，不用先卸载侧栏或删除账号设置。
 
-## 验证与文件
+配置助手升级时会归档安装目录里的旧版自有 XPI 和旧定制侧栏包，避免多个旧安装包混在一起。它不会直接修改 Zotero 资料目录中已经安装的插件。
 
-- 44 项 Node 自动测试，其中独立补丁 9 项，覆盖挂接、选区保留、PDF 上下文不受影响、停用恢复、侧栏替换和连续后台检查。
-- 独立 Zotero 10.0.6 合成文库：使用未修改的官方侧栏，真实鼠标选中 HTML、关闭弹窗及替换选区后，上下文均包含对应原文；重新安装官方侧栏后自动重挂接。此测试不登录账号或发送模型请求。
-- Windows 安装器在隔离目录验证首次安装和重复升级，检查四个插件完整、旧插件归档、本机连接令牌及其他 Codex 配置保留。
-- `PaperBridge-Source.zip` 包含源码、固定版本构建依赖及第三方许可证；独立补丁源码位于 `reader-compat/`，可用 `python reader_compat.py` 单独打包。下载文件的 SHA-256 见 `SHA256SUMS.txt`。
+内附官方侧栏的固定版本为 2026.299.1。保留官方更新渠道不代表兼容所有后续版本；PaperBridge 和 Reader Compatibility 自身仍采用手动更新。
 
-本版包含 0.3.1 的同步标题和批注修复。适用于 Windows x64、Zotero 10（10.0.6 验证）。仍为预发布版本，安装包未提供代码签名；论文、笔记、账号凭据和本机配置不随软件发布。
+## 文件
+
+`PaperBridge-Source.zip` 包含源码、固定版本构建依赖和第三方许可证。独立补丁源码在 `reader-compat/`，可以用 `python reader_compat.py` 单独打包。下载文件的 SHA-256 见 `SHA256SUMS.txt`。
+
+本版包含 0.3.1 的同步标题和批注修复，适用于 Windows x64、Zotero 10（已在 10.0.6 验证）。这是预发布版本，安装包未提供代码签名。
