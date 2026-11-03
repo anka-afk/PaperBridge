@@ -1,6 +1,6 @@
 # Windows 换电脑指南
 
-换电脑时，软件、Zotero 数据和 Obsidian 知识库要分别迁移。别只复制 Markdown，`.paperbridge/index.json` 也要一起带上。
+换电脑时，软件、Zotero 数据和 Obsidian 知识库要分别迁移。别只复制 Markdown，`.paperbridge/index.json` 和 `.paperbridge/note-links/` 也要一起带上，分别保存主笔记和普通笔记的配对路径。
 
 ## 旧电脑收尾
 
